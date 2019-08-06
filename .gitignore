@@ -1,0 +1,5 @@
+Froster.VC.VC.opendb
+*.opendb
+*.vs
+Debug
+Froster/Debug
