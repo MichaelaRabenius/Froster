@@ -1,17 +1,16 @@
 /*** OpenGL Includes ***/
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
-
-#include "Shader.h"
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
 
-using namespace std;
-//
+#include "Shader.h"
+#include "Sphere.h"
+
+/*************************** WINDOW SETTINGS **********************************/
 //Function to keep input code organized
 void processInput(GLFWwindow *window);
 //Adjusts the viewport if the window is resized
@@ -21,6 +20,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 int SCR_WIDTH = 900;
 int SCR_HEIGHT = 900;
 
+/**************************** OBJECTS *********************************/
 //quad
 float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
 						 // positions   // texCoords
@@ -41,90 +41,12 @@ void drawScreenQuad(Shader shader) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-double cx = -1.0, cy = -0.5, zoom = 1.0;
-int itr = 200;
+float radius = 0.3f;
+Sphere ball;
 
-double last_time = 0, current_time = 0;
-unsigned int ticks = 0;
+/*************************** SHADERS *********************************/
+Shader plainShader, ballShader;
 
-bool keys[1024] = { 0 };
-
-static void cursor_callback(GLFWwindow* window, double xpos, double ypos)
-{
-}
-
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-	double xpos, ypos;
-	glfwGetCursorPos(window, &xpos, &ypos);
-
-	double xr = 2.0 * (xpos / (double)SCR_WIDTH - 0.5);
-	double yr = 2.0 * (ypos / (double)SCR_WIDTH - 0.5);
-
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		cx += (xr - cx) / zoom / 2.0;
-		cy -= (yr - cy) / zoom / 2.0;
-	}
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	zoom += yoffset * 0.1 * zoom;
-	if (zoom < 0.1) {
-		zoom = 0.1;
-	}
-}
-
-static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-	const double d = 0.1 / zoom;
-
-	if (action == GLFW_PRESS) {
-		keys[key] = true;
-	}
-	else if (action == GLFW_RELEASE) {
-		keys[key] = false;
-	}
-
-	if (keys[GLFW_KEY_ESCAPE]) {
-		glfwSetWindowShouldClose(window, 1);
-	}
-	else if (keys[GLFW_KEY_A]) {
-		cx -= d;
-	}
-	else if (keys[GLFW_KEY_D]) {
-		cx += d;
-	}
-	else if (keys[GLFW_KEY_W]) {
-		cy += d;
-	}
-	else if (keys[GLFW_KEY_S]) {
-		cy -= d;
-	}
-	else if (keys[GLFW_KEY_MINUS] &&
-		itr < std::numeric_limits <int>::max() - 10) {
-		itr += 10;
-	}
-	else if (keys[GLFW_KEY_EQUAL]) {
-		itr -= 10;
-		if (itr <= 0) {
-			itr = 0;
-		}
-	}
-
-}
-
-static time_t last_mtime;
-
-static time_t get_mtime(const char *path)
-{
-	struct stat statbuf;
-	if (stat(path, &statbuf) == -1) {
-		perror(path);
-		exit(1);
-	}
-	return statbuf.st_mtime;
-}
 
 int main() {
 	//Initialize GLFW for window handling
@@ -139,15 +61,11 @@ int main() {
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Froster", NULL, NULL);
 	if (window == NULL)
 	{
-		cout << "Failed to create GLFW window" << endl;
+		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
 
-	glfwSetKeyCallback(window, key_callback);
-	glfwSetCursorPosCallback(window, cursor_callback);
-	glfwSetMouseButtonCallback(window, mouse_button_callback);
-	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetInputMode(window, GLFW_CURSOR_NORMAL, GLFW_STICKY_KEYS);
 
 	glfwMakeContextCurrent(window);
@@ -159,7 +77,7 @@ int main() {
 	//Terminate if it fails
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		cout << "Failed to initialize GLAD" << endl;
+		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 
@@ -177,9 +95,13 @@ int main() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-	// build and compile the shader program
+	// build and compile the shader programs
 	// ------------------------------------
-	Shader myShader("../shaders/plain.vert", "../shaders/plain.frag");
+	plainShader.init("../shaders/plainShader.vert", "../shaders/plainShader.frag");
+
+	
+	//Create sphere
+	ball.createSphere(radius, 20);
 
 	// render loop
 	// -----------
@@ -191,26 +113,17 @@ int main() {
 
 		// render
 		// ------
-
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glfwGetWindowSize(window, &SCR_WIDTH, &SCR_HEIGHT);
-		glUniform2d(glGetUniformLocation(myShader.ID, "screen_size"), (double)SCR_WIDTH, (double)SCR_HEIGHT);
-		glUniform1d(glGetUniformLocation(myShader.ID, "screen_ratio"), (double)SCR_WIDTH / (double)SCR_HEIGHT);
-		glUniform2d(glGetUniformLocation(myShader.ID, "center"), cx, cy);
-		glUniform1d(glGetUniformLocation(myShader.ID, "zoom"), zoom);
-		glUniform1i(glGetUniformLocation(myShader.ID, "itr"), itr);
+		glUniform2d(glGetUniformLocation(plainShader.ID, "screen_size"), (double)SCR_WIDTH, (double)SCR_HEIGHT);
+		glUniform1d(glGetUniformLocation(plainShader.ID, "screen_ratio"), (double)SCR_WIDTH / (double)SCR_HEIGHT);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//send uniforms
-		/*glUniform2f(glGetUniformLocation(myShader.ID, "screen_size"), (double)SCR_WIDTH, (double)SCR_HEIGHT);
-		glUniform1f(glGetUniformLocation(myShader.ID, "screen_ratio"), (double)SCR_WIDTH / (double)SCR_HEIGHT);
-		glUniform2f(glGetUniformLocation(myShader.ID, "center"), cx, cy);
-		glUniform1f(glGetUniformLocation(myShader.ID, "zoom"), zoom);
-		glUniform1i(glGetUniformLocation(myShader.ID, "itr"), itr);
 
-		glClear(GL_COLOR_BUFFER_BIT);*/
-
-		drawScreenQuad(myShader);
+		//drawScreenQuad(plainShader);
+		plainShader.use();
+		ball.render();
 
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)

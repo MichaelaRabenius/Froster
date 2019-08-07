@@ -124,10 +124,13 @@
     <ClCompile Include="glad.c" />
     <ClCompile Include="GL_utilities.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mandelbrot.cpp" />
+    <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GL_utilities.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Sphere.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
