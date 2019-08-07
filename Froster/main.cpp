@@ -181,9 +181,16 @@ int main() {
 	return 0;
 }
 //Update world rotation matrix
-void updateRot(int dir) {
+void updateRot(int dir, int axis) {
 	float timer = deltaTime * dir;
-	rot = glm::rotate(rot, glm::radians(timer * 100), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	if(axis == 0)
+		rot = glm::rotate(rot, glm::radians(timer * 100), glm::vec3(1.0f, 0.0f, 0.0f));
+	else if(axis == 1)
+		rot = glm::rotate(rot, glm::radians(timer * 100), glm::vec3(0.0f, 1.0f, 0.0f));
+	else if (axis == 2)
+		rot = glm::rotate(rot, glm::radians(timer * 100), glm::vec3(0.0f, 0.0f, 1.0f));
+
 }
 
 // Process input from keyboard
@@ -200,13 +207,13 @@ void processInput(GLFWwindow *window)
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		camera.ProcessKeyboard(UP, deltaTime);
+		updateRot(-1, 0);
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		camera.ProcessKeyboard(DOWN, deltaTime);
+		updateRot(1, 0);
 	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		updateRot(-1);
+		updateRot(-1, 1);
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		updateRot(1);
+		updateRot(1, 1);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
