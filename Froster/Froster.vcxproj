@@ -121,6 +121,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Box.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="GL_utilities.cpp" />
     <ClCompile Include="main.cpp" />
@@ -128,6 +129,8 @@
     <ClCompile Include="Sphere.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Box.h" />
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="GL_utilities.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Sphere.h" />
