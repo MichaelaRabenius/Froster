@@ -60,7 +60,7 @@ Sphere ball;
 Box box;
 
 /*************************** SHADERS *********************************/
-Shader plainShader, ballShader;
+Shader frostShader, ballShader;
 
 
 /***** Function Declarations *****/
@@ -120,7 +120,7 @@ int main() {
 
 	// build and compile the shader programs
 	// ------------------------------------
-	plainShader.init("../shaders/plainShader.vert", "../shaders/plainShader.frag");
+	frostShader.init("../shaders/frostShader.vert", "../shaders/frostShader.frag");
 
 	
 	//Create sphere
@@ -147,17 +147,17 @@ int main() {
 		// ------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glfwGetWindowSize(window, &SCR_WIDTH, &SCR_HEIGHT);
-		glUniform2d(glGetUniformLocation(plainShader.ID, "screen_size"), (double)SCR_WIDTH, (double)SCR_HEIGHT);
-		glUniform1d(glGetUniformLocation(plainShader.ID, "screen_ratio"), (double)SCR_WIDTH / (double)SCR_HEIGHT);
+		glUniform2d(glGetUniformLocation(frostShader.ID, "screen_size"), (double)SCR_WIDTH, (double)SCR_HEIGHT);
+		glUniform1d(glGetUniformLocation(frostShader.ID, "screen_ratio"), (double)SCR_WIDTH / (double)SCR_HEIGHT);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 		GLfloat t = 1;
-		glUniform1f(glGetUniformLocation(plainShader.ID, "t"), t);
+		glUniform1f(glGetUniformLocation(frostShader.ID, "t"), t);
 
 		//Send the cameras view direction to the fragment shader in order to calculate lighting
-		glUniform3fv(glGetUniformLocation(plainShader.ID, "viewDirection"), 1, glm::value_ptr(camera.Front));
+		glUniform3fv(glGetUniformLocation(frostShader.ID, "viewDirection"), 1, glm::value_ptr(camera.Front));
 
 		// Create projection and view matrix to send to shader
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -165,12 +165,12 @@ int main() {
 		glm::mat4 model(1.0f);
 		model = model * rot;
 		
-		plainShader.use();
+		frostShader.use();
 
 		// pass projection matrix to the sphere shader
-		plainShader.setMat4("model", model);
-		plainShader.setMat4("projection", projection);
-		plainShader.setMat4("view", view);
+		frostShader.setMat4("model", model);
+		frostShader.setMat4("projection", projection);
+		frostShader.setMat4("view", view);
 
 		ball.render();
 

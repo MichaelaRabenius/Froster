@@ -10,10 +10,12 @@ uniform vec3 viewDirection;
 
 void main()
 {
+    //Compute the base color for the object
+    vec3 baseColor = vec3(0.223, 0.411, 0.721); //Greyish blue
     //Psychic pattern
-    float a = sin(texCoord.s * 30.0 + t)/2.0 + 0.5;
-	float b = sin(texCoord.t * 30.0 * (1.0+sin(t/4.0)))/2.0 + 0.5;
-	vec3 psychColor = vec3(a, b, 0.8); // inColor;
+    // float a = sin(texCoord.s * 30.0 + t)/2.0 + 0.5;
+	// float b = sin(texCoord.t * 30.0 * (1.0+sin(t/4.0)))/2.0 + 0.5;
+	// vec3 psychColor = vec3(a, b, 0.8); // inColor;
 
     // Add Phong Lighting
     vec3 L = normalize(lightDirection);
@@ -21,9 +23,9 @@ void main()
     vec3 N = interpolatedNormal;
     vec3 R = 2.0 * dot(N,L) * N - L;
     float alpha = 20;
-    vec3 ka = vec3(0.3, 0.3, 0.3) * psychColor;
+    vec3 ka = vec3(0.3, 0.3, 0.3) * baseColor;
     vec3 Ia = vec3(0.8, 0.8, 0.8);
-    vec3 kd = psychColor;//vec3(0.7, 0.4, 0.0);
+    vec3 kd = baseColor;//vec3(0.7, 0.4, 0.0);
     vec3 Id = vec3(0.7, 0.7, 0.7);
     vec3 ks = vec3(1.0, 1.0, 1.0);
     vec3 Is = vec3(1.0, 1.0, 1.0);

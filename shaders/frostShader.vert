@@ -16,7 +16,7 @@ uniform mat4 projection;
 void main()
 {   
     texCoord = in_TexCoords;
-    lightDirection = vec3(0.0, 1.0, 1.0);
+    lightDirection = vec3(0.5, 0.5, 0.7);
 
     vec4 transformedNormal = projection * view * model * vec4(in_Normal, 1.0);
     interpolatedNormal = normalize(vec3(transformedNormal.x, transformedNormal.y, transformedNormal.z));
