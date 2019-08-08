@@ -22,7 +22,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 int SCR_WIDTH = 900;
 int SCR_HEIGHT = 900;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 2.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -155,6 +155,9 @@ int main() {
 
 		GLfloat t = 1;
 		glUniform1f(glGetUniformLocation(plainShader.ID, "t"), t);
+
+		//Send the cameras view direction to the fragment shader in order to calculate lighting
+		glUniform3fv(glGetUniformLocation(plainShader.ID, "viewDirection"), 1, glm::value_ptr(camera.Front));
 
 		// Create projection and view matrix to send to shader
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
