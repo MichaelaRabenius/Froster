@@ -3,3 +3,15 @@ Froster.VC.VC.opendb
 *.vs
 Debug
 Froster/Debug
+shaders/fbmnoise.frag
+shaders/fbmnoise.vert
+shaders/flownoise2.frag
+shaders/flownoise2.vert
+shaders/snoise3.frag
+shaders/snoise3.vert
+shaders/spots.frag
+shaders/spots.vert
+shaders/testShader.frag
+shaders/testShader.vert
+shaders/tiles.frag
+shaders/tiles.vert
