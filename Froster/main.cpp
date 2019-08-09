@@ -55,12 +55,12 @@ void drawScreenQuad(Shader shader) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-float radius = 0.3f;
+float radius = 0.5f;
 Sphere ball;
 Box box;
 
 /*************************** SHADERS *********************************/
-Shader frostShader, ballShader;
+Shader frostShader, testShader, spotShader;
 
 
 /***** Function Declarations *****/
@@ -121,7 +121,10 @@ int main() {
 	// build and compile the shader programs
 	// ------------------------------------
 	frostShader.init("../shaders/frostShader.vert", "../shaders/frostShader.frag");
+	testShader.init("../shaders/testShader.vert", "../shaders/testShader.frag");
+	spotShader.init("../shaders/spots.vert", "../shaders/spots.frag");
 
+	float u_time = 0;
 	
 	//Create sphere
 	ball.createSphere(radius, 20);
@@ -139,6 +142,7 @@ int main() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
+		u_time += deltaTime;
 
 		// input
 		processInput(window);
@@ -159,20 +163,36 @@ int main() {
 		//Send the cameras view direction to the fragment shader in order to calculate lighting
 		glUniform3fv(glGetUniformLocation(frostShader.ID, "viewDirection"), 1, glm::value_ptr(camera.Front));
 
+
 		// Create projection and view matrix to send to shader
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix(); // camera/view transformation
 		glm::mat4 model(1.0f);
 		model = model * rot;
 		
-		frostShader.use();
+		//frostShader.use();
+		//// pass projection matrix to the sphere shader
+		//frostShader.setMat4("model", model);
+		//frostShader.setMat4("projection", projection);
+		//frostShader.setMat4("view", view);
 
+
+		glUniform1f(glGetUniformLocation(testShader.ID, "u_time"), u_time);
+		glUniform2fv(glGetUniformLocation(testShader.ID, "u_resolution"), 1, glm::value_ptr(glm::vec2(SCR_WIDTH, SCR_HEIGHT)));
+		testShader.use();
 		// pass projection matrix to the sphere shader
-		frostShader.setMat4("model", model);
-		frostShader.setMat4("projection", projection);
-		frostShader.setMat4("view", view);
+		testShader.setMat4("model", model);
+		testShader.setMat4("projection", projection);
+		testShader.setMat4("view", view);
 
+		//spotShader.use();
+		//spotShader.setMat4("model", model);
+		//spotShader.setMat4("projection", projection);
+		//spotShader.setMat4("view", view);
+
+		//drawScreenQuad(testShader);
 		ball.render();
+		//box.render();
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
