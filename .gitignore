@@ -1,6 +1,6 @@
 Froster.VC.VC.opendb
 *.opendb
-*.vs
+.vs/
 Debug
 Froster/Debug
 shaders/fbmnoise.frag
