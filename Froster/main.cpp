@@ -185,13 +185,13 @@ int main() {
 		testShader.setMat4("projection", projection);
 		testShader.setMat4("view", view);
 
-		//spotShader.use();
-		//spotShader.setMat4("model", model);
-		//spotShader.setMat4("projection", projection);
-		//spotShader.setMat4("view", view);
+		/*spotShader.use();
+		spotShader.setMat4("model", model);
+		spotShader.setMat4("projection", projection);
+		spotShader.setMat4("view", view);*/
 
-		//drawScreenQuad(testShader);
-		ball.render();
+		drawScreenQuad(testShader);
+		//ball.render();
 		//box.render();
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
