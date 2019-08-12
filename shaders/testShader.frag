@@ -10,16 +10,8 @@ in vec3 vTexCoord3D;
 uniform vec2 u_resolution;
 uniform float u_time;
 
-
-#define amplitude 0.1
-#define BackgroundColor vec4(0.957, 0.925, 0.773, 1.0)
-#define EdgeColor vec4(0.2, 0.2, 0.2, 1.0)
-#define BlueColor vec4(0.384, 0.667, 0.655, 1.0)
-#define PurpleColor vec4(0.761, 0.706, 0.835, 1.0)
-#define YellowColor vec4(0.961, 0.753, 0.196, 1.0)
-#define GreenColor vec4(0.624, 0.796, 0.361, 1.0)
-#define OrangeColor vec4(0.953, 0.482, 0.318, 1.0)
-#define RedColor vec4(0.886, 0.557, 0.616, 1.0)
+#define BackgroundColor vec4(0.223, 0.411, 0.721, 1.0)
+#define LineColor vec4(1.0, 1.0, 1.0, 1.0)
 
 // float noise2d(vec2 p) {
 // 	float t = texture(iChannel0, p).x;
@@ -41,8 +33,19 @@ vec4 drawline(vec2 p, vec2 p0, vec2 p1, float width) {
     //d += noise2d(p * vec2(0.2)) * 0.005;
     float w = fwidth(d) * 1.0;
     
-    return vec4(EdgeColor.rgb, 1.-smoothstep(-w, w, d));
+    return vec4(LineColor.rgb, 1.-smoothstep(-w, w, d));
 }
+
+// vec4 drawline(vec2 start, float l, float angle, vec2 p1, float width) {
+
+
+//     float d = line(p, p0, p1, width);
+//     //d += noise2d(p * vec2(0.2)) * 0.005;
+//     float w = fwidth(d) * 1.0;
+    
+//     return vec4(LineColor.rgb, 1.-smoothstep(-w, w, d));
+// }
+
 
 void main()
 {
@@ -53,17 +56,22 @@ void main()
 
     // Draw line
     vec2 linePos = uv;
-    vec2 start = vec2(0.2);
-    vec2 end = vec2(0.8);
+    vec2 start = vec2(0.5, 0.2);
+    vec2 end = vec2(0.5, 0.3);
 
     vec4 line = drawline(linePos, 
                          start, 
-                         end, 0.015);
+                         end, 0.005);
+
+    vec4 line2 = drawline(linePos, end, end + vec2(0.1), 0.005);
     
 
     vec4 c = vec4(0);
     c.rgb = mix(line.rgb, c.rgb, c.a);
     c.a = max(line.a, c.a);
+
+    c.rgb = mix(line2.rgb, c.rgb, c.a);
+    c.a = max(line2.a, c.a);
 
     fragColor.rgb = mix(fragColor.rgb, c.rgb, c.a);
 
