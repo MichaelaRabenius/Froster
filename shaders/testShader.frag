@@ -78,7 +78,7 @@ float lsystem(vec2 position){
     float len = 1;
     float wid = 0.0001;
 
-    const int depth = 4;
+    const int depth = 5;
     const int branches = 2; 
     int maxDepth = int(pow(float(branches) , float(depth )));
 
@@ -120,10 +120,12 @@ float lsystem(vec2 position){
                 
             }
             else if(path == 1){
-                mx = negR * Translate(vec2(0,-2.*l));
+                l = l/pow(2.,float(i));
+                mat3 wind = Rotate(.6*sin(2.));
+                mx = wind * posR * Translate(vec2(0,-0.7*l));
             }
             else if(path == 2){
-                mx = Translate(vec2(0,-2.*l));
+                mx = negR * Translate(vec2(0,-2.*l));
             }
 
 
