@@ -121,44 +121,44 @@ float center(vec2 pt)
     float trunk = sdCappedCylinder(pt-vec2(0.,0.), vec2(wid,len));
     float d = 500.;
     
-    int c = 0; // Running count for optimizations
-    for (int count = 0; count <= 100; ++count){
-      int off = int(pow(float(branches), float(depth)));
-      vec2 pt_n = pt;
-      for (int i = 1; i <= depth; ++i)
-      {
-        float l = len/pow(2.,float(i));
+    // int c = 0; // Running count for optimizations
+    // for (int count = 0; count <= 100; ++count){
+    //   int off = int(pow(float(branches), float(depth)));
+    //   vec2 pt_n = pt;
+    //   for (int i = 1; i <= depth; ++i)
+    //   {
+    //     float l = len/pow(2.,float(i));
           
         
-        off /= branches; 
-        int dec = c / off;
-        int path = dec - branches*(dec/branches); //  dec % kBranches
+    //     off /= branches; 
+    //     int dec = c / off;
+    //     int path = dec - branches*(dec/branches); //  dec % kBranches
           
-        mat3 mx;
-	    if(path == 0){
-		  mx = posR*Disp(vec2(0,-2.*l));
-	    }
-        else if(path == 1){
-          mat3 wind = Rot(0.2*sin(6.2));
-          mx = wind*negR*Disp(vec2(0,-2.*l));
-	    }
-	    else if(path == 2){
-          mat3 wind = Rot(0.2*sin(1.));
-          mx = wind*Disp(vec2(0,-4.*l)) ;
-	    }
+    //     mat3 mx;
+	  //   if(path == 0){
+		//   mx = posR*Disp(vec2(0,-2.*l));
+	  //   }
+    //     else if(path == 1){
+    //       mat3 wind = Rot(0.2*sin(6.2));
+    //       mx = wind*negR*Disp(vec2(0,-2.*l));
+	  //   }
+	  //   else if(path == 2){
+    //       mat3 wind = Rot(0.2*sin(1.));
+    //       mx = wind*Disp(vec2(0,-4.*l)) ;
+	  //   }
         
-        pt_n = (mx * vec3(pt_n,1)).xy;
-        float y = sdCappedCylinder(pt_n, vec2(wid,l));   
+    //     pt_n = (mx * vec3(pt_n,1)).xy;
+    //     float y = sdCappedCylinder(pt_n, vec2(wid,l));   
           
-        // Early bail out. Bounding volume is a noodle of radius
-        // 2. * l around line segment.
-        if( y-2.0*l > 0.0 ) { c += off-1; break; }
-          d = min( d, y );
-     }
+    //     // Early bail out. Bounding volume is a noodle of radius
+    //     // 2. * l around line segment.
+    //     if( y-2.0*l > 0.0 ) { c += off-1; break; }
+    //       d = min( d, y );
+    //  }
         
-    ++c;
-    if (c > maxDepth) break;
-    }
+    // ++c;
+    // if (c > maxDepth) break;
+    // }
    return min(d,trunk); 
 }
 
