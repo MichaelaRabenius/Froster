@@ -36,7 +36,7 @@ mat3 Rotate(float angle){
     ); 
 }
 
-//Functions for drawing
+/*************** Functions for drawing ****************/
 //NOTE: This function draws a line with height [-len len], meaning if len is 2, the actual length of the line is 4
 //Origin/pivot point will be place at one of the ends.
 // To reach the end of a drawn line we must therefore translate to double the length.
@@ -48,6 +48,23 @@ float Line(vec2 position, float wid, float len){
     //Comput the distance of the examined point to a line with width and height
     vec2 dist = abs(vec2(position.x, position.y)) - vec2(wid, len);
     return min(max(dist.x,dist.y),0.0) + length(max(dist,0.0));
+}
+
+// Primitive shape .
+float primitive(vec2 pt, float wid, float len)
+{
+    mat3 posRot = Rotate(-(22.5));
+    mat3 negRot = Rotate((30));
+    
+    float t1 = Line(pt, wid, len); //Base line
+
+    vec2 pt_t2 = (posRot * Translate(vec2(0,-1.3 * len)) * vec3(pt,1)).xy;
+    float t2 = Line(pt_t2, wid, len/4.);
+
+    vec2 pt_t3 = (negRot * Translate(vec2(0,-0.4 * len)) * vec3(pt,1)).xy;
+    float t3 = Line(pt_t3, wid, len/4.);
+
+    return min(t1, min(t2, t3));
 }
 
 //Function for drawing an lsystem
@@ -69,7 +86,8 @@ float lsystem(vec2 position){
     //mat3 m1 = Translate(vec2(0,-len/2)); //Matrix to move the segment back to origin
 
     //Draw the first segment of the tree.
-    float axiom = Line(position, wid, len);
+    //float axiom = Line(position, wid, len);
+    float axiom = primitive(position, wid, len);
 
     float d = 100.;
 
@@ -113,7 +131,7 @@ float lsystem(vec2 position){
             new_position = (mx * vec3(new_position, 1)).xy;
 
             //Draw the next branch
-            float y = Line(new_position, wid, l);
+            float y = primitive(new_position, wid, l);
 
 
             // Early bail out. We can stop drawing when we reach the edge of the screen.
@@ -146,18 +164,21 @@ void main(){
 
     float d = lsystem(position + vec2(0, 3));
 
+    //float d = primitive(position, 0.01, 1);
+
     float t = clamp(d, 0.0, .04) * 2.*12.5;
-    vec4 bg = vec4(0);
+    vec4 bg = vec4(0.223, 0.411, 0.721, 1.0);
     vec4 fg = vec4(.8);
     vec4 Color = mix(bg, fg, 1.-t);
 
-    vec4 colorAxis = vec4(0);
+    // vec4 colorAxis = vec4(0);
 
-    if((position.y < 2 && position.y > -2)){
-        colorAxis = vec4(0.,1.0 ,0., 1);
-    }
+    // if((position.y < 2 && position.y > -2)){
+    //     colorAxis = vec4(0.,1.0 ,0., 1);
+    // }
 
-    FragColor = mix(Color, colorAxis, 0.5);
+    FragColor = Color;
+    //FragColor = mix(Color, colorAxis, 0.5);
     
 }
 
