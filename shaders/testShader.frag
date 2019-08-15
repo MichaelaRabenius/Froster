@@ -52,16 +52,16 @@ float Line(vec2 position, float wid, float len){
 
 //Function for drawing an lsystem
 float lsystem(vec2 position){
-    mat3 posR = Rotate(-(20));
-    mat3 negR = Rotate(20.);
+    mat3 posR = Rotate(-(15));
+    mat3 negR = Rotate(15);
 
     //position += vec2(0, -2);
 
     //Settings for the tree
-    float len = 2;
+    float len = 1;
     float wid = 0.0001;
 
-    const int depth = 3;
+    const int depth = 4;
     const int branches = 2; 
     int maxDepth = int(pow(float(branches) , float(depth )));
 
@@ -69,37 +69,26 @@ float lsystem(vec2 position){
     //mat3 m1 = Translate(vec2(0,-len/2)); //Matrix to move the segment back to origin
 
     //Draw the first segment of the tree.
-    float trunk =Line(position, wid, len);
+    float axiom = Line(position, wid, len);
 
     float d = 100.;
 
     int c = 0; //Will be used to control when to stop drawing
 
-    
 
-    // vec2 p_n = position;
-
-    // //This should move the coordinate system to the top of the first line
-    // mat3 mx = posR * Translate(vec2(0, -2*len));// *Translate(vec2(0,-2 * len));
-
-    // p_n = (mx * vec3(p_n,1)).xy;
-    // float branch = Line(p_n, wid, len);
-
-    // d = min( d, branch );
-
-
-    for(int count = 0; count < 10; ++count){
+    for(int count = 0; count < 1000; ++count){
         //Determines if the system should stop drawing.
         int off = int(pow(float(branches), float(depth)));
 
         //Store the position for drawing the next branches
         vec2 new_position = position;
 
+        float l = len;
         //Draw the branches for each depth level
         for(int i = 0; i < depth; ++i){
 
             //Decreas the branch length at each depth level
-            float l = len/pow(2.,float(i));
+            //float l = len * 0.8; //len/pow(2.,float(i));
 
             //Determine which path to take
             off /= branches; 
@@ -115,27 +104,28 @@ float lsystem(vec2 position){
             else if(path == 1){
                 mx = negR * Translate(vec2(0,-2.*l));
             }
-            // else if(path == 2){
-            //     mx = negR * Translate(vec2(0,-4.*l));
-            // }
+            else if(path == 2){
+                mx = Translate(vec2(0,-2.*l));
+            }
+
 
             //Move the coordinate system to draw the new line at the correct position
-            new_position = (mx * vec3(new_position,1)).xy;
+            new_position = (mx * vec3(new_position, 1)).xy;
 
             //Draw the next branch
             float y = Line(new_position, wid, l);
 
 
-            // Early bail out. Bounding volume is a noodle of radius
+            // Early bail out. We can stop drawing when we reach the edge of the screen.
             // 2. * l around line segment.
-            // if( y-2.0*l > 0.0 ) { 
-            //     c += off-1; break;
-            // }
+            if( y - 2.0 * l > 10.0 ) { 
+                c += off-1; break;
+            }
             
             //Decide which value to draw for the fragment
             d = min( d, y );
         
-
+            //l *= 0.9;
         }
 
         ++c;
@@ -146,7 +136,7 @@ float lsystem(vec2 position){
 
     
     //Finally output the final value for the fragment.
-    return min(d,trunk);
+    return min(d,axiom);
 }
 
 void main(){
