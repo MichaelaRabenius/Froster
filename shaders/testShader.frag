@@ -15,6 +15,10 @@ uniform float u_time;
 #define kBranches 2
 #define kMaxDepth 4 // branches ^ depth
 
+float rnd(float x)
+{
+    return fract(sin(dot(vec2(x+47.49,38.2467/(x+2.3)), vec2(12.9898, 78.233)))* (43758.5453));
+}
 //Okay for some reason + is down and left while - is up and right
 // FUnctions for transformations
 mat3 Translate(vec2 displacement){
@@ -67,19 +71,62 @@ float primitive(vec2 pt, float wid, float len)
     return min(t1, min(t2, t3));
 }
 
+// Primitive shape .
+float primitive2(vec2 pt, float wid, float len)
+{
+    mat3 posRot = Rotate(-(45.));
+    mat3 negRot = Rotate((45));
+    
+    float t1 = Line(pt, wid, len); //Base line
+
+    float trans = len * 2 / 5;
+
+    for(int i = 0; i < 5; ++i){
+        
+        vec2 n_pt2 = pt;
+        vec2 n_pt3 = pt;
+
+        // float r1 = rand(n_pt2);
+        // float r2 = rand(n_pt3);
+
+
+        float l = len/pow(2.,float(i)) / 2;
+
+        mat3 mx1 = posRot * Translate( vec2(0, -trans*i));
+        mat3 mx2 = negRot * Translate( vec2(0, -trans*i));
+        
+        //Move the coordinate system to draw the new line at the correct position
+        n_pt2 = (mx1 * vec3(n_pt2, 1)).xy;
+        //Draw the next branch
+        float t2 = Line(n_pt2, wid, l);
+
+        n_pt3 = (mx2 * vec3(n_pt3, 1)).xy;
+        //Draw the next branch
+        float t3 = Line(n_pt3, wid, l);
+
+        //Decide which value to draw for the fragment
+        t1 = min( t1, min(t2, t3) );
+    }
+
+    return t1;
+}
+
 //Function for drawing an lsystem
 float lsystem(vec2 position){
     mat3 posR = Rotate(-(15));
     mat3 negR = Rotate(15);
 
+    mat3 baseRot1 = Rotate(-120);
+    mat3 baseRot2 = Rotate(120);
+
     //position += vec2(0, -2);
 
     //Settings for the tree
-    float len = 1;
+    float len = 2;
     float wid = 0.0001;
 
     const int depth = 5;
-    const int branches = 2; 
+    const int branches = 3; 
     int maxDepth = int(pow(float(branches) , float(depth )));
 
     //insert code here for generating the next segments
@@ -87,7 +134,13 @@ float lsystem(vec2 position){
 
     //Draw the first segment of the tree.
     //float axiom = Line(position, wid, len);
-    float axiom = primitive(position, wid, len);
+    vec2 position2 = (baseRot1 * vec3(position, 1)).xy;
+    vec2 position3 = (baseRot2 * vec3(position, 1)).xy;
+
+    float line1 = primitive2(position, wid, len);
+    float line2 = primitive2(position2, wid, len);
+    float line3 = primitive2(position3, wid, len);
+    float axiom = min(line1, min(line2, line3));
 
     float d = 100.;
 
@@ -100,6 +153,8 @@ float lsystem(vec2 position){
 
         //Store the position for drawing the next branches
         vec2 new_position = position;
+        vec2 new_position2 = position2;
+        vec2 new_position3 = position3;
 
         float l = len;
         //Draw the branches for each depth level
@@ -113,37 +168,50 @@ float lsystem(vec2 position){
             int dec = c / off;
             int path = dec - branches*(dec/branches); //  dec % kBranches
 
-            mat3 mx; //This matrix will be used to draw the new line at the correct position
+            mat3 mx1, mx2, mx3; //This matrix will be used to draw the new line at the correct position
             if(path == 0){
                 //Draw a line connected to the last line, slightly rotated
-                mx= posR * Translate(vec2(0,-2*l));
+                mx1= posR * Translate(vec2(0,-2*l));
+                mx2 = posR *  Translate(vec2(0,-2*l));
+                mx3 = posR *  Translate(vec2(0,-2*l));
+                // mx3= posR * baseRot2 * Translate(vec2(0,-2*l));
                 
             }
             else if(path == 1){
                 l = l/pow(2.,float(i));
                 mat3 wind = Rotate(.6*sin(2.));
-                mx = wind * posR * Translate(vec2(0,-0.7*l));
+                mx1 = wind * posR * Translate(vec2(0,-0.7*l));
+                mx2 = wind * posR * Translate(vec2(0,-0.7*l));
+                mx3 = wind * posR * Translate(vec2(0,-0.7*l));
             }
             else if(path == 2){
-                mx = negR * Translate(vec2(0,-2.*l));
+                l = l/pow(2.,float(i));
+                mat3 wind = Rotate(-.6*sin(2.));
+                mx1 = wind * negR * Translate(vec2(0,-2.*l));
+                mx2 = wind * negR * Translate(vec2(0,-2.*l));
+                mx3 = wind * negR * Translate(vec2(0,-2.*l));
             }
 
 
             //Move the coordinate system to draw the new line at the correct position
-            new_position = (mx * vec3(new_position, 1)).xy;
+            new_position = (mx1 * vec3(new_position, 1)).xy;
+            new_position2 = (mx2 * vec3(new_position2, 1)).xy;
+            new_position3 = (mx3 * vec3(new_position3, 1)).xy;
 
             //Draw the next branch
-            float y = primitive(new_position, wid, l);
+            float y = primitive2(new_position, wid, l);
+            float y2 = primitive2(new_position2, wid, l);
+            float y3 = primitive2(new_position3, wid, l);
 
 
             // Early bail out. We can stop drawing when we reach the edge of the screen.
             // 2. * l around line segment.
-            if( y - 2.0 * l > 10.0 ) { 
+            if( y - 2.0 * l > 5.0 || y2 - 2.0 * l > 5.0 ||  y3 - 2.0 * l > 5.0 ) { 
                 c += off-1; break;
             }
             
             //Decide which value to draw for the fragment
-            d = min( d, y );
+            d = min( d, min(y, min(y2,y3) ));
         
             //l *= 0.9;
         }
@@ -159,14 +227,80 @@ float lsystem(vec2 position){
     return min(d,axiom);
 }
 
+float system(vec2 position){
+    mat3 posR = Rotate(-(90));
+    mat3 negR = Rotate(15);
+
+    //position += vec2(0, -2);
+
+    //Settings for the tree
+    float len = 2;
+    float wid = 0.0001;
+
+    float move_len = len + u_time/2;
+
+    float axiom = primitive2(position, wid, move_len);
+
+    float d = 100.;
+
+    vec2 new_position = position;
+
+    // int branch = 1;
+
+    // while(branch < 10){
+    //     vec2 new_position = position;
+
+    //     float l = len/pow(2.,float(branch));
+
+    //     mat3 mx = posR * Translate(vec2(0, -0.1 * branch * len + vec2(0, 0.1*branch)));
+
+    //     //Move the coordinate system to draw the new line at the correct position
+    //     new_position = (mx * vec3(new_position, 1)).xy;
+
+    //     //Draw the next branch
+    //     float y = Line(new_position, wid, move_len);
+
+    //     //Decide which value to draw for the fragment
+    //     d = min( d, y );
+
+    //     ++branch;
+    // }
+
+
+    for(int c = 0; c < 5; ++c){
+        
+        vec2 new_position = position;
+
+        float l = len/pow(2.,float(c));
+
+       
+        mat3 mx = posR * Translate(vec2(0,-0.5*c*len + vec2(0, 0.1*c)));
+
+        //Move the coordinate system to draw the new line at the correct position
+        new_position = (mx * vec3(new_position, 1)).xy;
+
+        //Draw the next branch
+        float y = primitive2(new_position, wid, move_len);
+
+        //Decide which value to draw for the fragment
+        d = min( d, y );
+    }
+
+    
+
+    return min(d, axiom);
+
+}
+
 void main(){
     vec2 position = (TexCoords*2 - 1);
     position *= 10;
 
 
-    float d = lsystem(position + vec2(0, 3));
+    float d = lsystem(position);
+    //float d = system(position);
 
-    //float d = primitive(position, 0.01, 1);
+    //float d = primitive2(position, 0.01, 4);
 
     float t = clamp(d, 0.0, .04) * 2.*12.5;
     vec4 bg = vec4(0.223, 0.411, 0.721, 1.0);
