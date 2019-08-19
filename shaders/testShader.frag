@@ -227,6 +227,109 @@ float lsystem(vec2 position){
     return min(d,axiom);
 }
 
+//Function for drawing an lsystem
+float lsystem2(vec2 position){
+    mat3 posR = Rotate(-(25));
+    mat3 negR = Rotate(25);
+    
+    //position += vec2(0, -2);
+
+    //Settings for the tree
+    float len = 2;
+    float wid = 0.0001;
+
+    const int depth = 2;
+    const int branches = 6; 
+    int maxDepth = int(pow(float(branches) , float(depth )));
+
+    //insert code here for generating the next segments
+    //mat3 m1 = Translate(vec2(0,-len/2)); //Matrix to move the segment back to origin
+
+    //Draw the first segment of the tree.
+    float axiom = Line(position, wid, len);
+    
+    float d = 100.;
+
+    int c = 0; //Will be used to control when to stop drawing
+
+
+    for(int count = 0; count < 1000; ++count){
+        //Determines if the system should stop drawing.
+        int off = int(pow(float(branches), float(depth)));
+
+        //Store the position for drawing the next branches
+        vec2 new_position = position;
+       
+        float l = len;
+        //Draw the branches for each depth level
+        for(int i = 0; i < depth; ++i){
+
+            //Decreas the branch length at each depth level
+            //l = l * 0.8; //len/pow(2.,float(i));
+
+            //Determine which path to take
+            off /= branches; 
+            int dec = c / off;
+            int path = dec - branches*(dec/branches); //  dec % kBranches
+
+            mat3 mx1, mx2, mx3; //This matrix will be used to draw the new line at the correct position
+            if(path == 0){
+                //Draw a line connected to the last line, slightly rotated
+                mx1 =  posR * Translate(vec2(0,-0.75*2*l));
+                               // mx3= posR * baseRot2 * Translate(vec2(0,-2*l));
+                
+            }
+            else if(path == 1){
+                mx1 = negR * Translate(vec2(0,-0.75*2*l));
+            }
+            else if(path == 2){
+
+                mx1 = posR * Translate(vec2(0,-0.5*2*l));
+                
+            }
+            else if(path == 3){
+
+                mx1 = negR * Translate(vec2(0,-0.5*2*l));
+                
+            }
+            else if(path == 4){
+                mx1 = posR * Translate(vec2(0,-0.25*2*l));
+                
+            }
+             else if(path == 5){
+                mx1 = negR * Translate(vec2(0,-0.25*2*l));
+                
+            }
+
+
+            //Move the coordinate system to draw the new line at the correct position
+            new_position = (mx1 * vec3(new_position, 1)).xy;
+                       //Draw the next branch
+            float y = Line(new_position, wid, l / 4);
+            
+            // Early bail out. We can stop drawing when we reach the edge of the screen.
+            // 2. * l around line segment.
+            if( y - 2.0 * l > 10.0 ) { 
+                c += off-1; break;
+            }
+            
+            //Decide which value to draw for the fragment
+            d = min( d, y);
+        
+            //l *= 0.9;
+        }
+
+        ++c;
+        //We do not want to exceed the maximum depth of our tree
+        if (c > maxDepth) break;
+
+    }
+
+    
+    //Finally output the final value for the fragment.
+    return min(d,axiom);
+}
+
 float system(vec2 position){
     mat3 posR = Rotate(-(90));
     mat3 negR = Rotate(15);
@@ -297,7 +400,8 @@ void main(){
     position *= 10;
 
 
-    float d = lsystem(position);
+    //float d = lsystem(position);
+    float d = lsystem2(position);
     //float d = system(position);
 
     //float d = primitive2(position, 0.01, 4);
