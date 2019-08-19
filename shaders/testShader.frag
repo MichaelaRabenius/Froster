@@ -229,24 +229,31 @@ float lsystem(vec2 position){
 
 //Function for drawing an lsystem
 float lsystem2(vec2 position){
-    mat3 posR = Rotate(-(25));
-    mat3 negR = Rotate(25);
+    mat3 posR = Rotate(-(45));
+    mat3 negR = Rotate(45);
     
-    //position += vec2(0, -2);
+    mat3 posBaseRot = Rotate(-120);
+    mat3 negBaseRot = Rotate(120);
 
     //Settings for the tree
-    float len = 2;
+    float len = 1;
     float wid = 0.0001;
 
-    const int depth = 2;
-    const int branches = 6; 
+    const int depth = 3;
+    const int branches = 7; 
     int maxDepth = int(pow(float(branches) , float(depth )));
-
-    //insert code here for generating the next segments
-    //mat3 m1 = Translate(vec2(0,-len/2)); //Matrix to move the segment back to origin
+    
+    //Create 3 branches to form a snowflake
+    vec2 pt_1 = position;
+    vec2 pt_2 = (posBaseRot * vec3(position,1)).xy;
+    vec2 pt_3 = (negBaseRot * vec3(position,1)).xy;
 
     //Draw the first segment of the tree.
-    float axiom = Line(position, wid, len);
+    float line1 = Line(pt_1, wid, len);
+    float line2 = Line(pt_2, wid, len);
+    float line3 = Line(pt_3, wid, len);
+
+    float axiom = min(line1, min(line2, line3));
     
     float d = 100.;
 
@@ -258,65 +265,74 @@ float lsystem2(vec2 position){
         int off = int(pow(float(branches), float(depth)));
 
         //Store the position for drawing the next branches
-        vec2 new_position = position;
+        vec2 npt_1 = pt_1;
+        vec2 npt_2 = pt_2;
+        vec2 npt_3 = pt_3;
        
         float l = len;
         //Draw the branches for each depth level
         for(int i = 0; i < depth; ++i){
 
             //Decreas the branch length at each depth level
-            //l = l * 0.8; //len/pow(2.,float(i));
+            //l = len/pow(2.,float(i));
 
             //Determine which path to take
             off /= branches; 
             int dec = c / off;
             int path = dec - branches*(dec/branches); //  dec % kBranches
 
-            mat3 mx1, mx2, mx3; //This matrix will be used to draw the new line at the correct position
+            mat3 mx1; //This matrix will be used to draw the new line at the correct position
             if(path == 0){
                 //Draw a line connected to the last line, slightly rotated
-                mx1 =  posR * Translate(vec2(0,-0.75*2*l));
+                mx1 =  posR * Translate(vec2(0,-0.8*2*l));
                                // mx3= posR * baseRot2 * Translate(vec2(0,-2*l));
                 
             }
             else if(path == 1){
-                mx1 = negR * Translate(vec2(0,-0.75*2*l));
+                mx1 = negR * Translate(vec2(0,-0.8*2*l));
             }
             else if(path == 2){
 
                 mx1 = posR * Translate(vec2(0,-0.5*2*l));
-                
             }
             else if(path == 3){
 
                 mx1 = negR * Translate(vec2(0,-0.5*2*l));
-                
             }
             else if(path == 4){
-                mx1 = posR * Translate(vec2(0,-0.25*2*l));
+                mx1 = posR * Translate(vec2(0,-0.2*2*l));
                 
             }
-             else if(path == 5){
-                mx1 = negR * Translate(vec2(0,-0.25*2*l));
+            else if(path == 5){
+                mx1 = negR * Translate(vec2(0,-0.2*2*l));
+                
+            }
+            else if(path == 6){
+                mx1 = Translate(vec2(0,-2*l));
                 
             }
 
+            //Shorten the length of each new line as we move further into the system
+            l /= 3;
 
             //Move the coordinate system to draw the new line at the correct position
-            new_position = (mx1 * vec3(new_position, 1)).xy;
-                       //Draw the next branch
-            float y = Line(new_position, wid, l / 4);
+            npt_1 = (mx1 * vec3(npt_1, 1)).xy;
+            npt_2 = (mx1 * vec3(npt_2, 1)).xy;
+            npt_3 = (mx1 * vec3(npt_3, 1)).xy;
+            
+            //Draw the next branch
+            float y1 = Line(npt_1, wid, l);
+            float y2 = Line(npt_2, wid, l);
+            float y3 = Line(npt_3, wid, l);
             
             // Early bail out. We can stop drawing when we reach the edge of the screen.
             // 2. * l around line segment.
-            if( y - 2.0 * l > 10.0 ) { 
+            if( y1 - 2.0 * l > 6.0 || y2 - 2.0 * l > 6.0 || y3 - 2.0 * l > 6.0 ) { 
                 c += off-1; break;
             }
             
             //Decide which value to draw for the fragment
-            d = min( d, y);
-        
-            //l *= 0.9;
+            d = min( d, min(y1, min(y2, y3)));
         }
 
         ++c;
