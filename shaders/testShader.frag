@@ -15,7 +15,7 @@ uniform float u_time;
 #define kBranches 2
 #define kMaxDepth 4 // branches ^ depth
 
-float rnd(float x)
+float rand(float x)
 {
     return fract(sin(dot(vec2(x+47.49,38.2467/(x+2.3)), vec2(12.9898, 78.233)))* (43758.5453));
 }
@@ -109,6 +109,24 @@ float primitive2(vec2 pt, float wid, float len)
     }
 
     return t1;
+}
+
+// Primitive shape .
+float primitive3(vec2 pt, float wid, float len)
+{
+    mat3 posRot = Rotate(-(40.));
+    mat3 negRot = Rotate((45));
+    
+    float t1 = Line(pt, wid, len); //Base line
+
+    vec2 pt2 = (negRot  * Translate(vec2(0, -2*0.33*len)) * vec3(pt,1)).xy;
+    vec2 pt3 = (negRot * Translate(vec2(0, -2*0.66*len)) * vec3(pt,1)).xy;
+
+    float t2 = Line(pt2, wid, len/2); //Base line
+    float t3 = Line(pt3, wid, len/2);
+
+
+    return min(t1, min(t2, t3));
 }
 
 //Function for drawing an lsystem
@@ -239,7 +257,7 @@ float lsystem2(vec2 position){
     float len = 1;
     float wid = 0.0001;
 
-    const int depth = 3;
+    const int depth = 2;
     const int branches = 7; 
     int maxDepth = int(pow(float(branches) , float(depth )));
     
@@ -346,6 +364,111 @@ float lsystem2(vec2 position){
     return min(d,axiom);
 }
 
+//Function for drawing an lsystem
+float lsystem3(vec2 position){
+    mat3 posR = Rotate(-(45));
+    mat3 negR = Rotate(45);
+    
+    mat3 posBaseRot = Rotate(-120);
+    mat3 negBaseRot = Rotate(120);
+
+    //Settings for the tree
+    float len = 1;
+    float wid = 0.0001;
+
+    const int depth = 2;
+    const int branches = 7; 
+    int maxDepth = int(pow(float(branches) , float(depth )));
+    
+    //Create 3 branches to form a snowflake
+    vec2 pt_1 = position;
+    //Draw the first segment of the tree.
+    float axiom = Line(pt_1, wid, len);
+    float d = 100.;
+
+    int c = 0; //Will be used to control when to stop drawing
+
+
+    for(int count = 0; count < 1000; ++count){
+        //Determines if the system should stop drawing.
+        int off = int(pow(float(branches), float(depth)));
+
+        //Store the position for drawing the next branches
+        vec2 npt_1 = pt_1;
+       
+        float l = len;
+        //Draw the branches for each depth level
+        for(int i = 0; i < depth; ++i){
+
+            //Decreas the branch length at each depth level
+            //l = len/pow(2.,float(i));
+
+            //Determine which path to take
+            off /= branches; 
+            int dec = c / off;
+            int path = dec - branches*(dec/branches); //  dec % kBranches
+
+            mat3 mx1; //This matrix will be used to draw the new line at the correct position
+            if(path == 0){
+                //Draw a line connected to the last line, slightly rotated
+                mx1 =  posR * Translate(vec2(0,-0.8*2*l));
+                
+            }
+            else if(path == 1){
+                mx1 = negR * Translate(vec2(0,-0.8*2*l));
+            }
+            else if(path == 2){
+
+                mx1 = posR * Translate(vec2(0,-0.5*2*l));
+            }
+            else if(path == 3){
+
+                mx1 = negR * Translate(vec2(0,-0.5*2*l));
+            }
+            else if(path == 4){
+                mx1 = posR * Translate(vec2(0,-0.2*2*l));
+                
+            }
+            else if(path == 5){
+                mx1 = negR * Translate(vec2(0,-0.2*2*l));
+                
+            }
+            else if(path == 6){
+                mx1 = Translate(vec2(0,-2*l));
+                
+            }
+
+            //Shorten the length of each new line as we move further into the system
+            l /= 3;
+
+            //Move the coordinate system to draw the new line at the correct position
+            npt_1 = (mx1 * vec3(npt_1, 1)).xy;
+           
+            //Draw the next branch
+            float y1 = Line(npt_1, wid, l);
+        
+            // Early bail out. We can stop drawing when we reach the edge of the screen.
+            // 2. * l around line segment.
+            if( y1 - 2.0 * l > 6.0) { 
+                c += off-1; break;
+            }
+            
+            //Decide which value to draw for the fragment
+            d = min( d, y1);
+        }
+
+        ++c;
+        //We do not want to exceed the maximum depth of our tree
+        if (c > maxDepth) break;
+
+    }
+
+    
+    //Finally output the final value for the fragment.
+    return min(d,axiom);
+}
+
+
 float system(vec2 position){
     mat3 posR = Rotate(-(90));
     mat3 negR = Rotate(15);
@@ -417,10 +540,22 @@ void main(){
 
 
     //float d = lsystem(position);
-    float d = lsystem2(position);
+    //float d = lsystem2(position);
+    //float d = lsystem3(position);
     //float d = system(position);
 
     //float d = primitive2(position, 0.01, 4);
+    //float d = primitive3(position, 0.01, 4);
+
+    float d = lsystem3(position);
+    mat3 rot = Rotate(-60);
+    vec2 p = position;
+    for(int i = 0; i < 5; ++i){
+        p = (rot * vec3(p,1)).xy;
+        float d_temp = lsystem3(p);
+        d = min(d, d_temp);
+        
+    }
 
     float t = clamp(d, 0.0, .04) * 2.*12.5;
     vec4 bg = vec4(0.223, 0.411, 0.721, 1.0);
@@ -437,35 +572,3 @@ void main(){
     //FragColor = mix(Color, colorAxis, 0.5);
     
 }
-
-/*
-void main(){
-    vec2 position = TexCoords*2 - 1;
-    position *= 10;
-
-    float len = 3;
-    float wid = 0.02;
-
-    //mat3 trans = Translate(vec2(0, -len/2));
-    mat3 rot = Rotate(35);
-
-    position = (rot * vec3(position, 1.)).xy;
-
-    float d = Line(position, wid, len);
-
-
-
-    vec4 color = vec4(d,d,d,1.0);
-
-    vec4 colorAxis = vec4(0);
-
-    if((position.y < 0.01 && position.y > -0.01) || (position.x < 0.01 && position.x > -0.01)){
-        colorAxis = vec4(0.,1.0 ,0., 1);
-    }
-    // if(position.y > 0){
-    //     colorAxis = vec4(1.,1.0 ,0., 1);
-    // }
-
-    FragColor = mix(color, colorAxis, 0.7);
-}
-*/
