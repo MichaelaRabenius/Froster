@@ -51,7 +51,7 @@ float lsystem(vec2 position){
     float len = 3;
     float wid = 0.001;
 
-    int depth = 4;
+    int depth = 2;
     const int branches = 5; 
     int maxDepth = int(pow(float(branches) , float(depth )));
     

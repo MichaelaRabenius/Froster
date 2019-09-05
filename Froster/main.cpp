@@ -7,9 +7,6 @@
 #include <iostream>
 
 #include "Shader.h"
-#include "Sphere.h"
-#include "Box.h"
-#include "Camera.h"
 
 /*************************** WINDOW SETTINGS **********************************/
 //Function to keep input code organized
@@ -21,17 +18,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 int SCR_WIDTH = 900;
 int SCR_HEIGHT = 900;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
-bool firstMouse = true;
-
-// world rotation
-glm::mat4 rot(1.0);
-
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
-float lastFrame = 0.0f;
 
 /**************************** OBJECTS *********************************/
 //quad
@@ -54,21 +40,17 @@ void drawScreenQuad(Shader shader) {
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-float radius = 0.5f;
-Sphere ball;
-Box box;
 
 /*************************** SHADERS *********************************/
 Shader frostShader, snowflakeShader;
 
+bool frost = true;
+
 
 
 /***** Function Declarations *****/
-GLuint generateTextureFromData(GLfloat * data);
 void drawScreenQuad(Shader shader);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 int main() {
@@ -123,9 +105,6 @@ int main() {
 	frostShader.init("../shaders/frostShader.vert", "../shaders/frostShader.frag");
 	snowflakeShader.init("../shaders/frostShader.vert", "../shaders/snowflakeShader.frag");
 
-	float u_time = 0;
-	
-
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glEnable(GL_CULL_FACE);
 	// render loop
@@ -134,12 +113,6 @@ int main() {
 	{
 		// input
 		// -----
-		// per-frame time logic
-		float currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-		u_time += deltaTime;
-
 		// input
 		processInput(window);
 
@@ -147,46 +120,19 @@ int main() {
 		// ------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glfwGetWindowSize(window, &SCR_WIDTH, &SCR_HEIGHT);
-		glUniform2d(glGetUniformLocation(frostShader.ID, "screen_size"), (double)SCR_WIDTH, (double)SCR_HEIGHT);
-		glUniform1d(glGetUniformLocation(frostShader.ID, "screen_ratio"), (double)SCR_WIDTH / (double)SCR_HEIGHT);
-
+		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-		GLfloat t = 1;
-		glUniform1f(glGetUniformLocation(frostShader.ID, "t"), t);
-
-		//Send the cameras view direction to the fragment shader in order to calculate lighting
-		glUniform3fv(glGetUniformLocation(frostShader.ID, "viewDirection"), 1, glm::value_ptr(camera.Front));
-
-
-		// Create projection and view matrix to send to shader
-		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		glm::mat4 view = camera.GetViewMatrix(); // camera/view transformation
-		glm::mat4 model(1.0f);
-		model = model * rot;
-		
-		//glUniform1f(glGetUniformLocation(frostShader.ID, "u_time"), u_time);
-		//glUniform2fv(glGetUniformLocation(frostShader.ID, "u_resolution"), 1, glm::value_ptr(glm::vec2(SCR_WIDTH, SCR_HEIGHT)));
-		//frostShader.use();
-		////// pass projection matrix to the sphere shader
-		//frostShader.setMat4("model", model);
-		//frostShader.setMat4("projection", projection);
-		//frostShader.setMat4("view", view);
-
-		//drawScreenQuad(frostShader);
-
-		glUniform1f(glGetUniformLocation(snowflakeShader.ID, "u_time"), u_time);
-		glUniform2fv(glGetUniformLocation(snowflakeShader.ID, "u_resolution"), 1, glm::value_ptr(glm::vec2(SCR_WIDTH, SCR_HEIGHT)));
-
-		snowflakeShader.use();
-		// pass projection matrix to the sphere shader
-		snowflakeShader.setMat4("model", model);
-		snowflakeShader.setMat4("projection", projection);
-		snowflakeShader.setMat4("view", view);
 
 		drawScreenQuad(snowflakeShader);
 		
+		if (frost) {
+			drawScreenQuad(frostShader);
+		} else{
+			drawScreenQuad(snowflakeShader);
+		}
+
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -199,40 +145,15 @@ int main() {
 }
 
 
-//Update world rotation matrix
-void updateRot(int dir, int axis) {
-	float timer = deltaTime * dir;
 
-	if(axis == 0)
-		rot = glm::rotate(rot, glm::radians(timer * 100), glm::vec3(1.0f, 0.0f, 0.0f));
-	else if(axis == 1)
-		rot = glm::rotate(rot, glm::radians(timer * 100), glm::vec3(0.0f, 1.0f, 0.0f));
-	else if (axis == 2)
-		rot = glm::rotate(rot, glm::radians(timer * 100), glm::vec3(0.0f, 0.0f, 1.0f));
-
-}
 
 // Process input from keyboard
 void processInput(GLFWwindow *window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		camera.ProcessKeyboard(RIGHT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-		updateRot(-1, 0);
-	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
-		updateRot(1, 0);
-	if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
-		updateRot(-1, 1);
-	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
-		updateRot(1, 1);
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+		frost = !frost;
 	
 }
 
@@ -243,29 +164,4 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	// make sure the viewport matches the new window dimensions; note that width and 
 	// height will be significantly larger than specified on retina displays.
 	glViewport(0, 0, width, height);
-}
-
-// glfw: whenever the mouse moves, this callback is called
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
-{
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
-
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-	lastX = xpos;
-	lastY = ypos;
-
-	camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-	camera.ProcessMouseScroll(yoffset);
 }

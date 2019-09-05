@@ -19,6 +19,7 @@ float rand(float x)
 {
     return fract(sin(dot(vec2(x+47.49,38.2467/(x+2.3)), vec2(12.9898, 78.233)))* (43758.5453));
 }
+
 //Okay for some reason + is down and left while - is up and right
 // FUnctions for transformations
 mat3 Translate(vec2 displacement){

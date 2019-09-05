@@ -20,5 +20,6 @@ void main()
 {   
     vTexCoord3D = in_Position;
     TexCoords = in_TexCoords;
-    gl_Position = projection* view * model * vec4(in_Position, 1.0); 
+    //gl_Position = projection* view * model * vec4(in_Position, 1.0);
+    gl_Position = vec4(in_Position, 1.0); 
 }  
