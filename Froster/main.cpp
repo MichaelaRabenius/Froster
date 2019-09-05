@@ -21,7 +21,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 int SCR_WIDTH = 900;
 int SCR_HEIGHT = 900;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 2.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -60,6 +60,8 @@ Box box;
 
 /*************************** SHADERS *********************************/
 Shader frostShader, testShader, spotShader;
+
+int u_depth;
 
 
 /***** Function Declarations *****/
@@ -120,10 +122,11 @@ int main() {
 	// build and compile the shader programs
 	// ------------------------------------
 	frostShader.init("../shaders/frostShader.vert", "../shaders/frostShader.frag");
-	testShader.init("../shaders/testShader.vert", "../shaders/testShader.frag");
+	testShader.init("../shaders/testShader.vert", "../shaders/testShader3.frag");
 	spotShader.init("../shaders/spots.vert", "../shaders/spots.frag");
 
 	float u_time = 0;
+	u_depth = 1;
 	
 	//Create sphere
 	ball.createSphere(radius, 20);
@@ -178,6 +181,7 @@ int main() {
 
 		glUniform1f(glGetUniformLocation(testShader.ID, "u_time"), u_time);
 		glUniform2fv(glGetUniformLocation(testShader.ID, "u_resolution"), 1, glm::value_ptr(glm::vec2(SCR_WIDTH, SCR_HEIGHT)));
+		glUniform1i(glGetUniformLocation(testShader.ID, "u_depth"), u_depth);
 		testShader.use();
 		// pass projection matrix to the sphere shader
 		testShader.setMat4("model", model);
@@ -236,6 +240,8 @@ void processInput(GLFWwindow *window)
 		updateRot(-1, 1);
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		updateRot(1, 1);
+	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
+		++u_depth;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
