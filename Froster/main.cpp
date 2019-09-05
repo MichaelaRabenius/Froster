@@ -59,9 +59,8 @@ Sphere ball;
 Box box;
 
 /*************************** SHADERS *********************************/
-Shader frostShader, testShader, spotShader;
+Shader frostShader, snowflakeShader;
 
-int u_depth;
 
 
 /***** Function Declarations *****/
@@ -122,15 +121,10 @@ int main() {
 	// build and compile the shader programs
 	// ------------------------------------
 	frostShader.init("../shaders/frostShader.vert", "../shaders/frostShader.frag");
-	testShader.init("../shaders/testShader.vert", "../shaders/testShader3.frag");
-	spotShader.init("../shaders/spots.vert", "../shaders/spots.frag");
+	snowflakeShader.init("../shaders/frostShader.vert", "../shaders/snowflakeShader.frag");
 
 	float u_time = 0;
-	u_depth = 1;
 	
-	//Create sphere
-	ball.createSphere(radius, 20);
-	box.createBox(0.5f, 0.5f, 0.5f);
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glEnable(GL_CULL_FACE);
@@ -172,30 +166,27 @@ int main() {
 		glm::mat4 model(1.0f);
 		model = model * rot;
 		
+		//glUniform1f(glGetUniformLocation(frostShader.ID, "u_time"), u_time);
+		//glUniform2fv(glGetUniformLocation(frostShader.ID, "u_resolution"), 1, glm::value_ptr(glm::vec2(SCR_WIDTH, SCR_HEIGHT)));
 		//frostShader.use();
-		//// pass projection matrix to the sphere shader
+		////// pass projection matrix to the sphere shader
 		//frostShader.setMat4("model", model);
 		//frostShader.setMat4("projection", projection);
 		//frostShader.setMat4("view", view);
 
+		//drawScreenQuad(frostShader);
 
-		glUniform1f(glGetUniformLocation(testShader.ID, "u_time"), u_time);
-		glUniform2fv(glGetUniformLocation(testShader.ID, "u_resolution"), 1, glm::value_ptr(glm::vec2(SCR_WIDTH, SCR_HEIGHT)));
-		glUniform1i(glGetUniformLocation(testShader.ID, "u_depth"), u_depth);
-		testShader.use();
+		glUniform1f(glGetUniformLocation(snowflakeShader.ID, "u_time"), u_time);
+		glUniform2fv(glGetUniformLocation(snowflakeShader.ID, "u_resolution"), 1, glm::value_ptr(glm::vec2(SCR_WIDTH, SCR_HEIGHT)));
+
+		snowflakeShader.use();
 		// pass projection matrix to the sphere shader
-		testShader.setMat4("model", model);
-		testShader.setMat4("projection", projection);
-		testShader.setMat4("view", view);
+		snowflakeShader.setMat4("model", model);
+		snowflakeShader.setMat4("projection", projection);
+		snowflakeShader.setMat4("view", view);
 
-		/*spotShader.use();
-		spotShader.setMat4("model", model);
-		spotShader.setMat4("projection", projection);
-		spotShader.setMat4("view", view);*/
-
-		drawScreenQuad(testShader);
-		//ball.render();
-		//box.render();
+		drawScreenQuad(snowflakeShader);
+		
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -206,6 +197,8 @@ int main() {
 	glfwTerminate();
 	return 0;
 }
+
+
 //Update world rotation matrix
 void updateRot(int dir, int axis) {
 	float timer = deltaTime * dir;
@@ -240,8 +233,7 @@ void processInput(GLFWwindow *window)
 		updateRot(-1, 1);
 	if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
 		updateRot(1, 1);
-	if (glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS)
-		++u_depth;
+	
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
