@@ -8,6 +8,8 @@ in vec3 vTexCoord3D;
 uniform vec2 u_resolution;
 uniform float u_time;
 
+uniform int u_depth;
+
 #define PI 3.14159
 
 float rand(float x)
@@ -165,7 +167,7 @@ void main()
     // float d = d1;
     
     float t = clamp(d, 0.0, .04) * 2.*12.5;
-    vec4 bg = vec4(0.223, 0.411, 0.721, 1.0);
+    vec4 bg = vec4(0.215, 0.227, 0.466, 1.0); //Some dark blue
     vec4 fg = vec4(.8);
     vec4 Color = mix(bg, fg, 1.-t);
 
