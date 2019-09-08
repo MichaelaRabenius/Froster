@@ -1,3 +1,8 @@
+// Frost shader to generate procedural frost using l-systems
+//
+// Inspired Max Sills/sillsm's l-system implementation
+// https://www.shadertoy.com/view/XtyGzh
+
 #version 330 core
 out vec4 FragColor;
 
@@ -8,7 +13,6 @@ in vec3 vTexCoord3D;
 uniform vec2 u_resolution;
 uniform float u_time;
 
-uniform int u_depth;
 
 #define PI 3.14159
 
@@ -22,7 +26,7 @@ float Line(vec2 position, float wid, float len){
     //left instead of the lower left? Thats why we must take - in order to move the
     //rectangle upwards?
     position -= vec2(0, len);
-    //Comput the distance of the examined point to a line with width and height
+    //Compute the distance of the examined point to a line with width and height
     vec2 dist = abs(vec2(position.x, position.y)) - vec2(wid, len);
     return min(max(dist.x,dist.y),0.0) + length(max(dist,0.0));
 }
@@ -49,26 +53,27 @@ mat3 Rotate(float angle){
 //Function for drawing an lsystem
 float lsystem(vec2 position){
 
-    //Settings for the tree
+    // positive and negative rotation matrices
+    mat3 p_Rot = Rotate(-90);
+    mat3 n_Rot = Rotate(90);
+
+    //Settings for the frost
     float len = 3;
     float wid = 0.001;
 
-    int depth = 2;
+    int depth = 4;
     const int branches = 5; 
     int maxDepth = int(pow(float(branches) , float(depth )));
-    
-    //Create 3 branches to form a snowflake
+
+    //Draw the first segment of the frost.
     vec2 pt_1 = position;
-    //Draw the first segment of the tree.
     float axiom = Line(pt_1, wid, len);
     float d = 100.;
 
     int c = 0; //Will be used to control when to stop drawing
 
-
     for(int count = 0; count < 1000; ++count){
-        mat3 p_Rot = Rotate(-90);
-        mat3 n_Rot = Rotate(90);
+        
 
         //Determines if the system should stop drawing.
         int off = int(pow(float(branches), float(depth)));
@@ -79,14 +84,10 @@ float lsystem(vec2 position){
         float l = len;
         //Draw the branches for each depth level
         for(int i = 0; i < depth; ++i){
-
-            //Decreas the branch length at each depth level
-            //l = len/pow(2.,float(i));
-
             //Determine which path to take
             off /= branches; 
             int dec = c / off;
-            int path = dec - branches*(dec/branches); //  dec % kBranches
+            int path = dec - branches*(dec/branches);
 
             mat3 mx1; //This matrix will be used to draw the new line at the correct position
             if(path == 0){
@@ -99,13 +100,13 @@ float lsystem(vec2 position){
             else if(path == 1){
                 //Draw a smaller line on the base line, rotated positive 90 degrees
                 mx1 = p_Rot * Translate(vec2(0,-0.33*2*l));
-                 //Shorten the length of each new line as we move further into the system
+                //Shorten the length of each new line as we move further into the system
                 l /= 3;
             }
             else if(path == 2){
                 // Draw a smaller line to the right of the base line
                 mx1 = Translate(vec2(-0.33*2*l, 0));
-                 //Shorten the length of each new line as we move further into the system
+                //Shorten the length of each new line as we move further into the system
                 l /= 3;
             }
             else if(path == 3){
@@ -120,7 +121,6 @@ float lsystem(vec2 position){
                 l /= 2;
             }
 
-           
 
             //Move the coordinate system to draw the new line at the correct position
             npt_1 = (mx1 * vec3(npt_1, 1)).xy;
@@ -156,6 +156,7 @@ void main()
 
     mat3 rot = Rotate(90);
     
+    //Repeat the pattern 4 times
     float d1 = lsystem(position + vec2(0, 10));
     float d2 = lsystem((rot * vec3(position,1)).xy + vec2(0, 10));
     float d3 = lsystem((rot * rot * vec3(position,1)).xy + vec2(0, 10));
@@ -172,5 +173,5 @@ void main()
     vec4 Color = mix(bg, fg, 1.-t);
 
     FragColor = Color;
-    //FragColor = mix(Color, colorAxis, 0.5);
+
 }
